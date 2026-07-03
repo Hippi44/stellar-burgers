@@ -1,5 +1,9 @@
+import { TOrdersData } from '@utils-types';
+
 export type FeedInfoUIProps = {
-  feed: any;
+  feed: Pick<TOrdersData, 'orders' | 'total' | 'totalToday'> & {
+    [key: string]: unknown;
+  };
   readyOrders: number[];
   pendingOrders: number[];
 };

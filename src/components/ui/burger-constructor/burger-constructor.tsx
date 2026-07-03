@@ -2,7 +2,8 @@ import React, { FC } from 'react';
 import {
   Button,
   ConstructorElement,
-  CurrencyIcon
+  CurrencyIcon,
+  MoveButton
 } from '@zlden/react-developer-burger-ui-components';
 import styles from './burger-constructor.module.css';
 import { BurgerConstructorUIProps } from './type';
@@ -20,25 +21,47 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
 }) => (
   <section className={styles.burger_constructor}>
     {constructorItems.bun ? (
-      <div className={`${styles.element} mb-4 mr-4`}>
-        <ConstructorElement
-          type='top'
-          isLocked
-          text={`${constructorItems.bun.name} (верх)`}
-          price={constructorItems.bun.price}
-          thumbnail={constructorItems.bun.image}
-        />
+      <div className={`${styles.bunRow} mb-4`}>
+        <div className={styles.dragIconHidden} aria-hidden>
+          <MoveButton
+            handleMoveUp={() => {}}
+            handleMoveDown={() => {}}
+            isUpDisabled
+            isDownDisabled
+          />
+        </div>
+        <div className={`${styles.bunElementWrap} ml-2`}>
+          <ConstructorElement
+            type='top'
+            isLocked
+            text={`${constructorItems.bun.name} (верх)`}
+            price={constructorItems.bun.price}
+            thumbnail={constructorItems.bun.image}
+          />
+        </div>
       </div>
     ) : (
-      <div
-        className={`${styles.noBuns} ${styles.noBunsTop} ml-8 mb-4 mr-5 text text_type_main-default`}
-      >
-        Выберите булки
+      <div className={`${styles.bunRow} mb-4`}>
+        <div className={styles.dragIconHidden} aria-hidden>
+          <MoveButton
+            handleMoveUp={() => {}}
+            handleMoveDown={() => {}}
+            isUpDisabled
+            isDownDisabled
+          />
+        </div>
+        <div className={`${styles.bunElementWrap} ml-2`}>
+          <div
+            className={`${styles.noBuns} ${styles.noBunsTop} text text_type_main-default`}
+          >
+            Выберите булки
+          </div>
+        </div>
       </div>
     )}
-    <ul className={styles.elements}>
-      {constructorItems.ingredients.length > 0 ? (
-        constructorItems.ingredients.map(
+    {constructorItems.ingredients.length > 0 ? (
+      <ul className={styles.elements}>
+        {constructorItems.ingredients.map(
           (item: TConstructorIngredient, index: number) => (
             <BurgerConstructorElement
               ingredient={item}
@@ -47,34 +70,70 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
               key={item.id}
             />
           )
-        )
-      ) : (
-        <div
-          className={`${styles.noBuns} ml-8 mb-4 mr-5 text text_type_main-default`}
-        >
-          Выберите начинку
-        </div>
-      )}
-    </ul>
-    {constructorItems.bun ? (
-      <div className={`${styles.element} mt-4 mr-4`}>
-        <ConstructorElement
-          type='bottom'
-          isLocked
-          text={`${constructorItems.bun.name} (низ)`}
-          price={constructorItems.bun.price}
-          thumbnail={constructorItems.bun.image}
-        />
-      </div>
+        )}
+      </ul>
     ) : (
-      <div
-        className={`${styles.noBuns} ${styles.noBunsBottom} ml-8 mb-4 mr-5 text text_type_main-default`}
-      >
-        Выберите булки
+      <div className={styles.elementsEmpty}>
+        <div className={styles.bunRow}>
+          <div className={styles.dragIconHidden} aria-hidden>
+            <MoveButton
+              handleMoveUp={() => {}}
+              handleMoveDown={() => {}}
+              isUpDisabled
+              isDownDisabled
+            />
+          </div>
+          <div className={`${styles.bunElementWrap} ml-2`}>
+            <div
+              className={`${styles.noBuns} ${styles.noBunsMiddle} text text_type_main-default`}
+            >
+              Выберите начинку
+            </div>
+          </div>
+        </div>
       </div>
     )}
-    <div className={`${styles.total} mt-10 mr-4`}>
-      <div className={`${styles.cost} mr-10`}>
+    {constructorItems.bun ? (
+      <div className={`${styles.bunRow} mt-4`}>
+        <div className={styles.dragIconHidden} aria-hidden>
+          <MoveButton
+            handleMoveUp={() => {}}
+            handleMoveDown={() => {}}
+            isUpDisabled
+            isDownDisabled
+          />
+        </div>
+        <div className={`${styles.bunElementWrap} ml-2`}>
+          <ConstructorElement
+            type='bottom'
+            isLocked
+            text={`${constructorItems.bun.name} (низ)`}
+            price={constructorItems.bun.price}
+            thumbnail={constructorItems.bun.image}
+          />
+        </div>
+      </div>
+    ) : (
+      <div className={`${styles.bunRow} mt-4`}>
+        <div className={styles.dragIconHidden} aria-hidden>
+          <MoveButton
+            handleMoveUp={() => {}}
+            handleMoveDown={() => {}}
+            isUpDisabled
+            isDownDisabled
+          />
+        </div>
+        <div className={`${styles.bunElementWrap} ml-2`}>
+          <div
+            className={`${styles.noBuns} ${styles.noBunsBottom} text text_type_main-default`}
+          >
+            Выберите булки
+          </div>
+        </div>
+      </div>
+    )}
+    <div className={`${styles.total} mt-10`}>
+      <div className={styles.cost}>
         <p className={`text ${styles.text} mr-2`}>{price}</p>
         <CurrencyIcon type='primary' />
       </div>
@@ -82,6 +141,7 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
         htmlType='button'
         type='primary'
         size='large'
+        extraClass={styles.orderButton}
         children='Оформить заказ'
         onClick={onOrderClick}
       />
