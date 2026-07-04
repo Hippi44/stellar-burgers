@@ -1,4 +1,4 @@
-import { ingredientsReducer, fetchIngredients } from '../ingredients-slice';
+import { ingredientsReducer, fetchIngredients, initialState } from '../ingredients-slice';
 import { TIngredient } from '@utils-types';
 
 const createIngredient = (
@@ -19,12 +19,6 @@ const createIngredient = (
 });
 
 describe('ingredients slice', () => {
-  const initialState = {
-    items: [],
-    isLoading: false,
-    error: null
-  };
-
   it('should return initial state for unknown action', () => {
     const state = ingredientsReducer(undefined, { type: 'UNKNOWN' });
     expect(state).toEqual(initialState);

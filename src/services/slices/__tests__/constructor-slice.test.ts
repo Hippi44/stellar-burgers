@@ -4,7 +4,8 @@ import {
   removeIngredient,
   moveIngredientUp,
   moveIngredientDown,
-  clearConstructor
+  clearConstructor,
+  initialState
 } from '../constructor-slice';
 import { TConstructorIngredient, TIngredient } from '@utils-types';
 
@@ -42,11 +43,6 @@ const createBun = (overrides: Partial<TIngredient> = {}): TIngredient => ({
 });
 
 describe('constructor slice', () => {
-  const initialState = {
-    bun: null,
-    ingredients: []
-  };
-
   it('should return initial state for unknown action', () => {
     const state = constructorReducer(undefined, { type: 'UNKNOWN' });
     expect(state).toEqual(initialState);

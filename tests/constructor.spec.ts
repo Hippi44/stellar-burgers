@@ -4,38 +4,29 @@ import fs from 'fs';
 
 const harDir = path.resolve(__dirname, 'hars');
 
-const readHarResponse = (harFile: string): string => {
+const readHarJson = (harFile: string) => {
   const har = JSON.parse(fs.readFileSync(path.join(harDir, harFile), 'utf-8'));
-  return har.log.entries[0].response.content.text;
+  return JSON.parse(har.log.entries[0].response.content.text);
 };
 
 const API_URL = 'https://norma.education-services.ru/api';
 
 test.describe('Constructor Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route(`${API_URL}/ingredients`, (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: readHarResponse('ingredients.har')
-      })
-    );
+    await page.routeFromHAR(path.join(harDir, 'ingredients.har'), {
+      url: `${API_URL}/ingredients`,
+      update: false
+    });
 
-    await page.route(`${API_URL}/auth/user`, (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: readHarResponse('user.har')
-      })
-    );
+    await page.routeFromHAR(path.join(harDir, 'user.har'), {
+      url: `${API_URL}/auth/user`,
+      update: false
+    });
 
-    await page.route(`${API_URL}/orders`, (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: readHarResponse('order.har')
-      })
-    );
+    await page.routeFromHAR(path.join(harDir, 'order.har'), {
+      url: `${API_URL}/orders`,
+      update: false
+    });
 
     await page.goto('/');
   });
@@ -45,15 +36,18 @@ test.describe('Constructor Page', () => {
     await page.evaluate(() => localStorage.clear());
   });
 
-  test('should add ingredient from list to constructor', async ({ page }) => {
-    const addButtons = page.locator('button:has-text("Добавить")');
-    await expect(addButtons.first()).toBeVisible();
-    await addButtons.first().click();
+  test('should add specific ingredient from list to constructor', async ({
+    page
+  }) => {
+    const ingredients = readHarJson('ingredients.har').data;
+    const target = ingredients[2];
 
-    const constructorElements = page.locator(
-      '[class*="constructor"] [class*="element"]'
-    );
-    await expect(constructorElements).not.toHaveCount(0);
+    const card = page.locator(`a[href*="/ingredients/${target._id}"]`);
+    await expect(card).toBeVisible();
+    await card.locator('~ button').click();
+
+    const constructorSection = page.locator('section').last();
+    await expect(constructorSection).toContainText(target.name);
   });
 
   test('should open and close ingredient modal', async ({ page }) => {
@@ -70,18 +64,28 @@ test.describe('Constructor Page', () => {
   });
 
   test('should display correct ingredient data in modal', async ({ page }) => {
-    const ingredient = page.locator('a[href*="/ingredients/"]').first();
-    await ingredient.click();
+    const ingredients = readHarJson('ingredients.har').data;
+    const target = ingredients[2];
+
+    const card = page.locator(`a[href*="/ingredients/${target._id}"]`);
+    await card.click();
 
     const modal = page.locator('#modals > div').first();
     await expect(modal).toBeVisible();
-    const modalTitle = await modal.locator('h3').first().textContent();
-    expect(modalTitle).toContain('Детали ингредиента');
+
+    await expect(modal.locator('h3')).toContainText(target.name);
+    await expect(modal).toContainText(target.calories.toString());
+    await expect(modal).toContainText(target.proteins.toString());
+    await expect(modal).toContainText(target.fat.toString());
+    await expect(modal).toContainText(target.carbohydrates.toString());
   });
 
   test('should create order and display order number, then clear constructor', async ({
     page
   }) => {
+    const orderData = readHarJson('order.har');
+    const expectedOrderNumber = orderData.order.number;
+
     await page.context().addCookies([
       {
         name: 'accessToken',
@@ -96,9 +100,20 @@ test.describe('Constructor Page', () => {
 
     await page.goto('/');
 
-    const addButtons = page.locator('button:has-text("Добавить")');
-    await addButtons.first().click();
-    await addButtons.nth(2).click();
+    const ingredients = readHarJson('ingredients.har').data;
+    const bun = ingredients.find((i: { type: string }) => i.type === 'bun');
+    const filling = ingredients.find(
+      (i: { type: string }) => i.type === 'main'
+    );
+
+    await page
+      .locator(`a[href*="/ingredients/${bun._id}"]`)
+      .locator('~ button')
+      .click();
+    await page
+      .locator(`a[href*="/ingredients/${filling._id}"]`)
+      .locator('~ button')
+      .click();
 
     const orderButton = page.locator('button:has-text("Оформить заказ")');
     await expect(orderButton).toBeEnabled();
@@ -106,14 +121,15 @@ test.describe('Constructor Page', () => {
 
     const orderModal = page.locator('#modals > div').first();
     await expect(orderModal).toBeVisible();
-    await expect(orderModal).toContainText('12345');
+    await expect(orderModal).toContainText(expectedOrderNumber.toString());
 
     const closeButton = orderModal.locator('button');
     await closeButton.click();
     await expect(page.locator('#modals')).toBeEmpty();
 
-    const constructorText = page.locator('section').last();
-    await expect(constructorText).toContainText('Выберите булки');
+    const constructorSection = page.locator('section').last();
+    await expect(constructorSection).toContainText('Выберите булки');
+    await expect(constructorSection).toContainText('Выберите начинку');
   });
 
   test('should close modal by clicking overlay', async ({ page }) => {
