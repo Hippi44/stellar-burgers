@@ -1,21 +1,28 @@
 .containerMain {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
   max-width: 1240px;
+  width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .title {
   width: 100%;
-  max-width: 1260px;
-  margin-left: auto;
-  margin-right: auto;
+  box-sizing: border-box;
 }
 
 .main {
   display: flex;
   justify-content: space-between;
-  height: 100%;
-  overflow: hidden;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.main > * {
+  flex: 0 0 auto;
 }
